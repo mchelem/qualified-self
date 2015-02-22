@@ -1,0 +1,96 @@
+---
+title: 'The qualified self'
+author: "Michele Silva"
+output: html_document
+---
+
+## Introduction
+
+In this project, we use data from accelerometers on the belt, forearm, arm, and dumbell of 6 participants, to predict the manner 
+in which they did the exercise. They were asked to perform barbell lifts correctly and incorrectly in 5 different ways. 
+The [dataset](http://groupware.les.inf.puc-rio.br/har) 
+with 5 classes (sitting-down, standing-up, standing, walking, and sitting) collected on 8 hours of activities of 4 healthy subjects.
+
+<img src="http://groupware.les.inf.puc-rio.br/static/WLE/on-body-sensing-schema.png" style="width: 300px;"/>
+
+
+Source: http://groupware.les.inf.puc-rio.br/har#ixzz3STeDnBFY
+
+# Prepare the Data
+
+```{r, message=FALSE}
+library(caret)
+trainingData <- read.csv("data/pml-training.csv")
+predictors <- c(
+  # Belt
+  "roll_belt", "pitch_belt", "yaw_belt", "total_accel_belt", 
+  "gyros_belt_x", "gyros_belt_y", "gyros_belt_z", 
+  "accel_belt_x", "accel_belt_y", "accel_belt_z", 
+  "magnet_belt_x", "magnet_belt_y", "magnet_belt_z", 
+  
+  # Arm
+  "roll_arm", "pitch_arm", "yaw_arm", "total_accel_arm", 
+  "gyros_arm_x", "gyros_arm_y", "gyros_arm_z", 
+  "accel_arm_x", "accel_arm_y", "accel_arm_z", 
+  "magnet_arm_x", "magnet_arm_y", "magnet_arm_z", 
+  
+  # Dumbbell
+  "roll_dumbbell", "pitch_dumbbell", "yaw_dumbbell", "total_accel_dumbbell", 
+  "gyros_dumbbell_x", "gyros_dumbbell_y", "gyros_dumbbell_z", 
+  "accel_dumbbell_x", "accel_dumbbell_y", "accel_dumbbell_z", 
+  "magnet_dumbbell_x", "magnet_dumbbell_y", "magnet_dumbbell_z"
+)
+
+# Cross validation
+inTrain <- createDataPartition(trainingData$classe, p=0.8, list=FALSE)
+training <- trainingData[inTrain, c(predictors, "classe")]
+testing <- trainingData[-inTrain, c(predictors, "classe")]
+```
+
+## Exploratory Data Analysis
+
+In a Principle Component Analysis one can see the data is not easily separable and, thus, a more complex model such as a random forest is likely to be the most suitable.
+
+```{r, error=TRUE, message=FALSE}
+library(ggbiplot)
+training.pca <- prcomp(training[1:39])
+g <- ggbiplot(training.pca, obs.scale = 1, var.scale = 1, groups = training$classe, ellipse = TRUE, circle = TRUE)
+g <- g + scale_color_discrete(name = '')
+print(g)
+```
+
+
+## Model Fitting
+
+Use a random forest model to fit the data.
+
+```{r, error=TRUE, message=FALSE}
+library(randomForest)
+model <- randomForest(training[,1:39], training$classe)
+layout(matrix(c(1,2),nrow=1),
+       width=c(4,1)) 
+par(mar=c(5,4,4,0)) #No margin on the right side
+plot(model, log="y")
+par(mar=c(5,0,4,2)) #No margin on the left side
+plot(c(0,1),type="n", axes=F, xlab="", ylab="")
+legend("top", colnames(model$err.rate),col=1:4,cex=0.8,fill=1:4)
+```
+
+## Evaluating the Model
+
+Evaluate the out of the sample error using the testing set.
+
+```{r, error=TRUE, message=FALSE}
+predictions <- predict(model, testing)
+confusionMatrix(predictions, testing$classe)
+```
+
+## Predicting the Outcome
+
+Predict the outcome applying the model to the new data set.
+
+```{r}
+testingData <- read.csv("data/pml-testing.csv")
+predictions <- predict(model, testingData[,predictors])
+predictions
+```

@@ -6,7 +6,10 @@ output: html_document
 
 ## Introduction
 
-In this project, we use data from accelerometers on the belt, forearm, arm, and dumbell of 6 participants, to predict the manner 
+
+The quantified self movement is a group of enthusiasts who take measurements about themselves regularly to improve their health, to find patterns in their behavior, or because they are tech geeks. They regularly quantify how much of a particular activity they do, but they rarely quantify how well they do it. In this project we explore the "qualified self".
+
+We use data from accelerometers on the belt, forearm, arm, and dumbell of 6 participants, to predict the manner 
 in which they did the exercise. They were asked to perform barbell lifts correctly and incorrectly in 5 different ways. 
 The [dataset](http://groupware.les.inf.puc-rio.br/har) 
 with 5 classes (sitting-down, standing-up, standing, walking, and sitting) collected on 8 hours of activities of 4 healthy subjects.
